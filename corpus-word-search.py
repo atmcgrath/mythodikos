@@ -5,73 +5,84 @@ Created on Thu Jan  9 15:41:03 2020
 
 Code for mythodikos project
 1. Iterates through corpus
-2. Opens text file, reads file, turns raw text into nltk text object
-3. Searches a text for keyword and returns a slice 5 words before and after keyword
+2. Opens text file, reads file, checks for matches
+3. Turns raw text into nltk text object
+4. Returns a slice 5 words before and after each keyword match
+5. Writes results to a csv
 
-Next steps:
+Next steps 1/13
 - Find word matches with dictionary list (placenames)
-- Write matches to csv with filename
-- Turn chunks into functions
+- Beautiful soup for xml searching
+- Regex instead of word lists?
+- Turn chunks into functions? 
+- Resolve encoding error: 
+    UnicodeDecodeError: 'utf-8' codec can't decode byte 0xdf in position 15: invalid continuation byte    
 
-NB: I made some untested changes to clean this up 1/10
 
 @author: atmcgrath
 """
 
 import nltk # natural language toolkit - http://www.nltk.org/
 # import re
-# import pprint
+# import pprint ?
 from nltk import word_tokenize
-# import os
+import os
+import csv
 
 # =============================================================================
-# Iterates through files and subfolders in the directory contaning the corpus
+# Functions
 # =============================================================================
 
-"""
-corpusdir = "~/cltk_data/latin/text/latin_text_latin_library"
+# Determines whether a text contains any of the keywords and returns a list of matching keywords
 
-for root, dirs, files in os.walk(corpusdir):
-    for filename in files:
-        infile = root + '/' + filename
-# commented out while testing search functions on single text
-"""
+def word_matches(wordlist, text_obj):
+    matches = []
+    for word in wordlist:
+        if word in text_obj:
+            matches.append(word)
+        else:
+            continue
+    return matches
+
 
 # =============================================================================
-# Processes single text file into nltk text object (a list of words, among other things)
+# Program
 # =============================================================================
 
-infile = "~/cltk_data/latin/text/latin_text_latin_library/agnes.txt"
+outfile = "/Users/amcgrath1/classics/mytho-test-1-13-new.csv"
 
-raw = open(infile).read() # stores contents of file
-tokens = word_tokenize(raw) # tokenizes raw text (list of words)
-text = nltk.Text(tokens) # creates a Text object for nltk functions
+f = csv.writer(open(outfile, 'w'))
+f.writerow(['filename', 'keyword', 'index', 'context'])
 
 keyword = "semper" # in place of a name, since I don't read latin
 
-# =============================================================================
-# Getting slices of words around keyword
-# =============================================================================
+keywords = ['semper', 'iulius', 'julius']
 
-# Method 1) - index all instances, create list, locate index + or - 5 words
+corpusdir = "/Users/amcgrath1/cltk_data/latin/text/latin_text_latin_library"
 
-if keyword in text:
-    matchlist = [i for i, item in enumerate(text) if item == keyword]
-# Creates a list comprehension that records the index value of each occurrence of keyword 'semper'
+#  Iterates through files and subfolders in the directory contaning the corpus
+for root, dirs, files in os.walk(corpusdir):
+    for filename in files:
+        infile = root + '/' + filename
 
-    results = [] # create list to store text segments
-    for instance in matchlist: # Iterates through indexes
-        first = instance - 6 # Creates variable for index 5 words before occurence
-        last = instance + 6 # ditto 5 words after
-        result = text[first:last] # creates a list for that 10-word slice
-        results.append(result) # appends that list to 'results'
+# infile = "/Users/amcgrath1/cltk_data/latin/text/latin_text_latin_library/agnes.txt"
 
-    for r in results: # for testing purposes: display results
-        print(r)
-else: continue
+        with open(infile) as fp:
+            raw = fp.read() # stores contents of file
+            matches = word_matches(keywords, raw) #searches file contents for keyword matches
+            if len(matches) == 0: # If no matches exist, move on to next file
+                continue 
+            else: # If matches exist
+                tokens = word_tokenize(raw) # tokenizes raw text
+                text = nltk.Text(tokens) # creates a Text object for nltk functions
+                for counter, value, in enumerate(text): # Identifies index numbers for each word
+                    for key in matches: # Iterates through present matching keywords
+                        if value == key: # For each match, creates 10-word slice around keyword
+                            first = counter - 6 
+                            last = counter + 6
+                            result = text[first:last]
+                            # Writes the filename, the relevant keyword, its index number, and its context
+                            f.writerow([filename, key, counter, result]) 
+                        else:
+                            continue
 
-"""
-# this worked but there may be a better way
-# stack exchange turned this up, but it didn't work https://simply-python.com/2014/03/14/saving-output-of-nltk-text-concordance/
-
-"""
