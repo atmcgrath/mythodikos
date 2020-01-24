@@ -23,8 +23,8 @@ Based on search-xml-greek.py
 # =============================================================================
 
 from bs4 import BeautifulSoup
-
 import re
+import csv
 
 # =============================================================================
 # Program
@@ -32,20 +32,33 @@ import re
 
 infile = "/Users/amcgrath1/Documents/ds-projects/stella-mythodikos/mythodikos/texts/latin-phi0119.xml"
 
-keyword = 'argumentum'
+outfile = "/Users/amcgrath1/classics/mytho-test-1-24.csv"
 
-soup = BeautifulSoup(open(infile), features="lxml")
-matches = soup.find_all(string=re.compile(keyword))
+with open(outfile, 'w') as z:
+    f = csv.writer(z)
 
+#f = csv.writer(open(outfile, 'w'))
+    f.writerow(['title', 'author', 'keyword', 'line', 'context', 'filename'])
+
+    keywords = ['argumentum', 'faciundum', 'antiquam']
+
+    soup = BeautifulSoup(open(infile), features="lxml")
+
+    text_title = soup.title.string
+    text_author = soup.author.string
+
+    for key in keywords:
+        matches = soup.find_all(string=re.compile(key))
+    
 # creates list of string matches 
-for m in matches: # m represents matching string
-    linematch = m.parent # linematch represents line containing m
-    linenumber = m.parent['n'] # line number attribute of linematch
-    prev_line = linematch.previous_sibling.previous_sibling.string
-    next_line = linematch.next_sibling.next_sibling.string
-    context = [prev_line, m, next_line]
-    # line before - previous_sibling is a newline character '\n'
+        for m in matches: # m represents matching string
+            linematch = m.parent # linematch represents line containing m
+            linenumber = m.parent['n'] # line number attribute of linematch
+            prev_line = linematch.previous_sibling.previous_sibling.string
+            next_line = linematch.next_sibling.next_sibling.string
+            context = [prev_line, m, next_line]
+        # line before - previous_sibling is a newline character '\n'
 
-    print("line " + linenumber)
-    print(context)
+            f.writerow([text_title, text_author, key, linenumber, context, infile])
+
 
