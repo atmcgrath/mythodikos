@@ -4,6 +4,7 @@
 """
 Code for Mythodikos projcect:
 1. Open file, read file, find matches
+2. Gets line number for match 
 
 
 Next Steps:
@@ -27,8 +28,8 @@ from bs4 import BeautifulSoup
 
 import re
 
-import os
-import csv
+# import os
+# import csv
 
 # =====================================================================
 # Functions
@@ -67,7 +68,12 @@ soup = BeautifulSoup(open(infile), features="lxml")
 
 # returns each line (reads as string) for keyword match, does not work for list
 # abbreviation: soup("a") = soup.find_all("a")
-print(soup.find_all(string=re.compile('Ἀμφιδάμας')))
+matches = soup.find_all(string=re.compile('Ἀμφιδάμας'))
+for m in matches:
+    print(m) # prints line with match
+    print(m.parent['n']) # prints line number
+    print(m.parent.previous_sibling.previous_sibling.string) # should be previous line but still working this out
+    
 # .find_parents for each returned string might be able to return some citation metadata
 
 # once parents of sting(s) are indentified, modify this to return metadata citation?
