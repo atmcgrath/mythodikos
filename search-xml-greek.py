@@ -2,19 +2,22 @@
 # -*- coding: utf-8 -*-
 
 """
-Code for Mythodikos projcect:
-1. Open file, read file, find matches
-2. Gets line number for match 
-
+Code for Mythodikos projcect: Greek search
+1. Open xml, parse xml, find pattern matches for a keyword list (personlist)
+2. For each match: records line number and line text
+3. For each match: records text section info
+4. For each match: gets title and author of text
+5. For each match: returns one line before and after matching line, as list
+6. Wites to .csv
 
 Next Steps:
-1. remove accents (resource: https://github.com/jtauber/greek-accentuation)
-2. write results to csv
-3. return three lines around keyword match using TokenizeSentence (cltk) or soup.next_sibling / .previous_sibling
-4. find word matches with placenames
-5. use regex for keyword variations OR find a way to search for lemmas of keywords (resource: http://docs.cltk.org/en/latest/greek.html#lemmatization)
-6. turn chunks of code into functions
+1. use regex for keyword variations OR find a way to search for lemmas of keywords (resource: http://docs.cltk.org/en/latest/greek.html#lemmatization)
+2. remove accents (resource: https://github.com/jtauber/greek-accentuation)
+3. find word matches with placenames
+4. turn chunks of code into functions
 
+@author: sfritzell
+informed by search-xml-latin.py
 """
 
 # =====================================================================
@@ -29,13 +32,30 @@ from bs4 import BeautifulSoup
 import re
 
 # import os
-# import csv
+import csv
 
 # =====================================================================
 # Functions
 # =====================================================================
 
-
+# finds text section information, needs to be tested robustly on corpus
+def get_citation(line):
+	grups = [par.atts for par in m.parents if par.name == 'div']
+	cite_list = []
+	for g in grups:
+		try:
+			cit = g['subtype'] + '' + g['n']
+			cite_list.append(cit)
+		except:
+			continue
+	cite_list.reverse()
+	citation = '; '.join(cite_list)
+	return citation
+""" 
+this function pulls some of the information when tested on its own (using print) following the code block for write.csv
+with references to the funciton itself commented out.
+When run as a function, however, it does not print to .csv
+"""  
 
 # =====================================================================
 # Program
@@ -43,40 +63,32 @@ import re
 
 infile = "/Users/stellafritzell/mythodikos/canonical-greekLit-master/data/tlg0001/tlg001/tlg0001.tlg001.perseus-grc2.xml"
 
-# outfile = "/Users/stellafritzell/mythodikos/test-1-24.csv"
-# f = csv.writer(open(outfile), 'w')
-# f.writerow(['keyword', 'citation', 'content', 'filename'])
-
-""" 
-desired xml metadata:
-Author, Work:  <teiHeader>
-								<fileDesc>
-									<titleStmt>
-										<title>
-										<author>
-			Text Citation: <text>
-								<body>
-									<div>
-										<div subtype='book' n='1'>
-											<l n='1'>
-			Context: print line above and below keyword (.next_sibling & .previous_sibling)
-"""
+outfile = "/Users/stellafritzell/mythodikos/test-1-27.csv"
 
 personlist = ['Ἀμφιδάμας', 'Μελέαγρος', 'Ζήτης']
 
 soup = BeautifulSoup(open(infile), features="lxml")
 
-# returns each line (reads as string) for keyword match, does not work for list
-# abbreviation: soup("a") = soup.find_all("a")
-matches = soup.find_all(string=re.compile('Ἀμφιδάμας'))
-for m in matches:
-    print(m) # prints line with match
-    print(m.parent['n']) # prints line number
-    print(m.parent.previous_sibling.previous_sibling.string) # should be previous line but still working this out
-    
-# .find_parents for each returned string might be able to return some citation metadata
+# build .csv with desired metadata as column headers
+with open(outfile, 'w') as z:
+	f = csv.writer(z)
+	f.writerow(['title', 'author', 'person', 'section', 'line number', 'context'
+		#, 'filename'
+		])
 
-# once parents of sting(s) are indentified, modify this to return metadata citation?
-for tag in soup.find_all('title'):
-	print(tag.sourceline, tag.sourcepos, tag.string)
+	text_title = soup.title.string
+	text_author = soup.author.string
 
+	# creates list of string matches
+	for person in personlist:
+		matches = soup.find_all(string=re.compile(person))
+
+		for m in matches: # m = occurance of matching string
+			linematch = m.parent # linematch represents the line containing m
+			linenumber = m.parent['n'] # line number attribute of line match
+			prev_line = linematch.previous_sibling.previous_sibling.string
+			next_line = linematch.next_sibling.next_sibling.string
+			context = [prev_line, m, next_line]
+			citation = get_citation(linematch) # see issue mentioned in function comment
+
+			f.writerow([text_title, text_author, person, citation, linenumber, context])
