@@ -25,7 +25,7 @@ if soup.author:
 else: text_author = ""
 
 ```
-
+If you look at my branch you can see the whole code, but I had to fix the indenting also so it doesn't give you a granular changelog.
 
 
 ## Jan 31, 2020 Meeting - ATM notes
