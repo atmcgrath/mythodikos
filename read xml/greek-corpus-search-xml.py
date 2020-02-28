@@ -37,17 +37,14 @@ import csv
 
 def get_citation(line):
 	cite_list = []
-	sections = [parent.attrs for parent in m.parents if parent.name == 'div'] # Stephanus numbers (i.e. Plato) would be more accurate in some cases, but these are 'milestone' parents and non-priority
+	sections = [parent.attrs for parent in line.parents if parent.name == 'div'] # Stephanus numbers (i.e. Plato) would be more accurate in some cases, but these are 'milestone' parents and non-priority
 	for s in sections: # for each 'div' attributes dictionary
-		if s['type'] == 'textpart' or 'chapter': # this is also returning 'div' that have an 'edition' attribute, where 'n' = the tlg/perseus edition/catalogue numbers (not needed)
+		if s['type'] != 'edition':
 			try:
 				cite_list.append(s['n']) # return the number of that text part; PROBLEM: not all 'textpart' divs seem to have numbers ???
-			except:
+			except KeyError:
 				continue
 	cite_list.reverse()
-	line = [parent.attrs for parent in m.parent if parent.name == 'l']
-	for l in line:
-		cite_list.append(l['n'])
 	citation = '.'.join(cite_list)
 	return citation
 
@@ -75,7 +72,7 @@ with open(outfile, 'w') as z:
 		for file in files:
 			if fnmatch.fnmatch(file, '*grc*.xml'):
 				infile = root+'/'+str(file) # specifices greek text files for search
-				
+
 				with open(infile) as x:
 					soup = BeautifulSoup(x, features='lxml')
 
@@ -87,11 +84,17 @@ with open(outfile, 'w') as z:
 					for key in persondict:
 						terms = persondict[key] # values of dictionary keys in list form
 						for t in terms: # each item of the value lists
-							matches = soup.find_all(string=re.compile(t)) 
+							matches = soup.find_all(string=re.compile(t))
 
 							for m in matches: # m = occurance of matching string
 								matchchunk = m.parent # matchchunk represents the line containing m
-								
+								if matchchunk.name == 'l'
+									try:
+										line_num = matchchunk['n']
+									except KeyError:
+										line_num = ""
+
+
 								"""
 								context = []
 								if m.parent.t == 'l':
@@ -102,7 +105,6 @@ with open(outfile, 'w') as z:
 									context = m
 								"""
 
-								citation = get_citation(matchchunk) # + '.' + linenumber # this appends line number to the section numbers in standard format
+								citation = get_citation(m) # + '.' + linenumber # this appends line number to the section numbers in standard format
 
-								f.writerow([key, text_title, text_author, citation, t, m, file]) # maybe write function for differnt types of matchchunk context?
-
+								f.writerow([key, text_title, text_author, citation, line_num, t, m, file]) # maybe write function for differnt types of matchchunk context?
