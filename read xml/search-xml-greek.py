@@ -40,7 +40,7 @@ import csv
 
 # finds text section information, needs to be tested robustly on corpus
 def get_citation(line):
-	grups = [par.atts for par in m.parents if par.name == 'div']
+	grups = [par.atts for par in line.parents if par.name == 'div']
 	cite_list = []
 	for g in grups:
 		try:
@@ -51,11 +51,11 @@ def get_citation(line):
 	cite_list.reverse()
 	citation = '; '.join(cite_list)
 	return citation
-""" 
+"""
 this function pulls some of the information when tested on its own (using print) following the code block for write.csv
 with references to the funciton itself commented out.
 When run as a function, however, it does not print to .csv
-"""  
+"""
 
 # =====================================================================
 # Program
