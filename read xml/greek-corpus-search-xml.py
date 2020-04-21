@@ -38,7 +38,7 @@ import csv
 
 def get_citation(line):
 	cite_list = []
-	sections = [parent.attrs for parent in m.parents if parent.name == 'div'] # Stephanus numbers (i.e. Plato) would be more accurate in some cases, but these are 'milestone' parents and non-priority
+	sections = [parent.attrs for parent in line.parents if parent.name == 'div'] # Stephanus numbers (i.e. Plato) would be more accurate in some cases, but these are 'milestone' parents and non-priority
 	for s in sections: # for attritubutes of 'div'
 		if s['type'] == 'textpart': # only look at textpart 'div'
 			try:
@@ -52,7 +52,7 @@ def get_citation(line):
 				continue
 	cite_list.reverse() # make order book - chapter - section
 
-	textchunk = m.parent # m.parent == the exact section of .xml text in which the match is found (could be a paragraph or a line)
+	textchunk = line.parent # m.parent == the exact section of .xml text in which the match is found (could be a paragraph or a line)
 	for chunk in textchunk:
 		if textchunk.name == 'l': # for line number of match
 			try:
@@ -62,7 +62,7 @@ def get_citation(line):
 		elif textchunk.name == 'lb': #this should account for <lb n='#' rend="displayNum"/> line citation in Callimachus files (tlg0533.tlg017), but does not.  Why?
 			try:
 				cite_list.append('line'+textchunk['n'])
-			except KeyError: 
+			except KeyError:
 				continue
 
 			# some files are encoded with line numbers for every 5 lines of text.  How to address this?
@@ -88,7 +88,7 @@ def get_context(line):
 greekcorpusdir = "/Users/stellafritzell/mythodikos/canonical-greekLit-master"
 outfile = "/Users/stellafritzell/mythodikos/corpus-test-4-21.csv"
 
-persondict = {'Atalanta': [r'\bἈταλάντ'], 
+persondict = {'Atalanta': [r'\bἈταλάντ'],
 			'Arion': [r'\bἈρίων', r'\bἈρίον']
 			} # Compile in reference to LIMC
 
@@ -103,7 +103,7 @@ with open(outfile, 'w') as z:
 		for file in files:
 			if fnmatch.fnmatch(file, '*grc*.xml'):
 				infile = root+'/'+str(file) # specifices greek text files for search
-				
+
 				with open(infile) as x:
 					soup = BeautifulSoup(x, features='lxml')
 
@@ -115,8 +115,8 @@ with open(outfile, 'w') as z:
 					for key in persondict:
 						terms = persondict[key] # value list for each key
 						for t in terms: # each regex value in value lists
-							matches = soup.find_all(string=re.compile(t)) 
-							
+							matches = soup.find_all(string=re.compile(t))
+
 							for m in matches: # m = entire matching string
 								citation = get_citation(m) # applies citation formula to each match
 								# context = get_context(m)
