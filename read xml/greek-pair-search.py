@@ -4,17 +4,16 @@
 """
 Code for Mythodikos Project:
 1. iterates through corpus
-1. opens file, parses file, finds pattern matches with regex values & keys in a dictionary
-2. for each match: records latinized name (key), title & author of text (needs some refinement), citation (with issues), text context (with issues), and file name
-3. writes information to .csv
+2. opens file, parses file, finds pattern matches with regex values & keys in a dictionary
+3. locates secondary pattern matches with regex values within initial search results
+4. for each match: records latinized person name (key), place name, title & author of text (needs some refinement), citation (with issues), text context (with issues), and file name
+5. writes information to .csv
 
 Next Steps:
 1. refine 'context' criteria
-1. clean up citation extraction, author and title
-2. compile place-name search terms using place_names.csv (has nominative greek & latinized forms, & Pleiades id) and regex (for both noun & adjective forms)
-3. find word matches with placenames
-
-*** From the Perseus DL github: "if a file ends in "1," it is likely this file is not CTS (Cannonical Text Services) compliant" -- i.e. it is probably not encoded with the same consistency of the files that are CTS compliant
+2. clean up citation extraction, author and title
+3. clean up pair-match encoding - should not need to do another find_all() search of the full corpus, just of the initial results
+4. attach Pleiades IDs/geo corrdinates to places in search results
 
 @author: sfritzell
 adapted from: search-xml-greek.py
@@ -84,7 +83,7 @@ def get_context(line):
 # =====================================================================
 
 greekcorpusdir = "/Users/stellafritzell/mythodikos/canonical-greekLit-master"
-outfile = "/Users/stellafritzell/mythodikos/corpus-test-5-01.csv"
+outfile = "/Users/stellafritzell/mythodikos/corpus-test-5-15.csv"
 
 persondict = {
 			'Atalanta': [r'\bἈταλάντ'], 
@@ -92,13 +91,12 @@ persondict = {
 			} # Compile in reference to LIMC
 
 placedict = {
-			'Arcadia': [r'\bἈρκαδ'], #need for lowercase reg-ex as well?
-			#'Athens': [r''],
+			'Arcadia': [r'\bἈρκαδ', r'\bἈρκάδ'], #need for lowercase reg-ex as well?
 			'Boeotia': [r'\bΒοιωτ', r'\bΒοιῳτ', r'\bΒοϊωτ', r'\bΒοέκ', r'\bβοεκ'],
-			#'Calydon': [r''],
-			#'Colchis': [r''],
-			#'Corinth': [r''],
-			#'Lacedaemon': [r''],
+			'Calydon': [r'\bΚαλυδόν', r'\bΚαλύδων', r'\bΚαλυδῶν', r'\bΚαλυδών'],
+			'Colchis': [r'\bΚόλκ', r'\bΚολκ', r'\bΚολχ'],
+			'Corinth': [r'\bΚόρινθ', r'\bΚορίνθ', r'\bΚορινθ'],
+			'Lacedaemon': [r'\bΛακεδ', r'\bΛαβεδ', r'\bΛακκοδ', r'\bΛακηδ', r'\bΛακιδ', r'\bΛακοδ', r'\bΛαχεδ'],
 			#'Lesbos': [r''],
 			#'Lycaeus': [r''],
 			#'Mainalos': [r''],
@@ -129,39 +127,36 @@ with open(outfile, 'w') as z:
 					else: text_author = ''
 
 					for person in persondict:
-						pers = persondict[person] # value list for each key
-						for p in pers: # each regex value in value lists
-							pers_matches = soup.find_all(string=re.compile(p)) 
+						per_terms = persondict[person] # value list for each person key
+						for per in per_terms: # each regex value
+							per_matches = soup.find_all(string=re.compile(per))
+							for per_match in per_matches:
+								context = per_match.replace('\n', '') # strips newline characters
 
-							for match1 in pers_matches: # match = entire matching string
-								context = match1.replace('\n', '') # strips newline characters
-								
-								for place in placedict: #this chunk essentially runs another full corpus search - how to use for just results of 'person' search?
-									geo = placedict[place]
-									for g in geo:
-										geo_matches = soup.find_all(string=re.compile(g))
-										
-										for match2 in geo_matches:
-											if match2 in context:
+								for place in placedict:
+									pl_terms = placedict[place] # value list for each place key
+									for pl in pl_terms: # earch regex value
+										pl_matches = soup.find_all(string=re.compile(pl))
+										for pl_match in pl_matches:
+											if pl_match in context:
 												try:
-													section = get_section(match1) # applies citation formula to each match
-													line = get_linenum(match1)
-													length = len(context) # number of characters in context
-													f.writerow([person, place, text_title, text_author, section, line, context, length, file]) #write defined variables for each match to .csv
+													length = len(context) # number of characters
+													section = get_section(per_match)
+													line = get_linenum(per_match)
+													f.writerow([person, place, text_title, text_author, section, line, context, length, file]) # write defined variables for matches to csv
 												except KeyError:
 													continue
 											else:
 												continue
 
-								'''
-								PSEUDO CODE FOR MATCH PAIRS:
-								for match context
-									if match context contains value from placedict
-										try: get citation info (f.writerow(...))
-										except:
-											continue
-									else:
-										continue
-								'''
-								
-								# context = get_context(m)
+
+'''
+PSEUDO CODE FOR MATCH PAIRS:
+for match context
+	if match context contains value from placedict
+		try: get citation info (f.writerow(...))
+		except:
+			continue
+	else:
+		continue
+'''
