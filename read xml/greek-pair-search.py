@@ -82,11 +82,14 @@ def get_context(line):
 # Program
 # =====================================================================
 
-greekcorpusdir = "/Users/stellafritzell/mythodikos/canonical-greekLit-master"
-outfile = "/Users/stellafritzell/mythodikos/corpus-test-5-15.csv"
+# greekcorpusdir = "/Users/stellafritzell/mythodikos/canonical-greekLit-master"
+# outfile = "/Users/stellafritzell/mythodikos/corpus-test-5-15.csv"
+
+greekcorpusdir = "/Users/amcgrath1/classics/canonical-greekLit-master"
+outfile = "/Users/amcgrath1/classics/stella-5-18.csv"
 
 persondict = {
-			'Atalanta': [r'\bἈταλάντ'], 
+			'Atalanta': [r'\bἈταλάντ'],
 			'Arion': [r'\bἈρίων', r'\bἈρίον']
 			} # Compile in reference to LIMC
 
@@ -117,7 +120,7 @@ with open(outfile, 'w') as z:
 		for file in files:
 			if fnmatch.fnmatch(file, '*grc*.xml'):
 				infile = root+'/'+str(file) # specifices greek text files for search
-				
+
 				with open(infile) as x:
 					soup = BeautifulSoup(x, features='lxml')
 
@@ -135,19 +138,20 @@ with open(outfile, 'w') as z:
 
 								for place in placedict:
 									pl_terms = placedict[place] # value list for each place key
-									for pl in pl_terms: # earch regex value
-										pl_matches = soup.find_all(string=re.compile(pl))
-										for pl_match in pl_matches:
-											if pl_match in context:
-												try:
-													length = len(context) # number of characters
-													section = get_section(per_match)
-													line = get_linenum(per_match)
-													f.writerow([person, place, text_title, text_author, section, line, context, length, file]) # write defined variables for matches to csv
-												except KeyError:
-													continue
-											else:
+									for pl in pl_terms: # search regex value
+                                        pair = re.search(pl, context) # searches context for x
+                                        if pair:
+                                            try:
+												length = len(context) # number of characters
+												section = get_section(per_match)
+												line = get_linenum(per_match)
+												f.writerow([person, place, text_title,
+                                                        text_author, section, line, context, length, file]) # write defined variables for matches to csv
+                                            except KeyError:
 												continue
+										else:
+                                            continue
+
 
 
 '''
@@ -159,4 +163,17 @@ for match context
 			continue
 	else:
 		continue
+'''
+
+'''
+ATM notes 5-18:
+
+Find substring in string:
+    - if pl in context
+    - context.find(pl)
+
+Find regex in string - this works for above
+    match = re.search(pl, context)
+
+
 '''
