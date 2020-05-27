@@ -42,7 +42,7 @@ How to get this line number:
 
 Does the line number thing work often?
 - Worked for: tlg2046.tlg001.perseus-grc1.xml (has <l>text</l>)
--
+- Works for latin example, but there are so few matches overall
 
 ## Feb 14, 2020 Meeting - ATM notes
 - I changed "infile" to "file" so it writes just filename instead of entire filepath (99)
