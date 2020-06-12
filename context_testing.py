@@ -136,7 +136,7 @@ with open(outfile, 'w') as z:
                         for per in per_terms: # each regex value
                             per_matches = soup.find_all(string=re.compile(per))
                             for per_match in per_matches:
-                                rent = per_match.parent 
+                                rent = per_match.parent
                                 if rent.name == 'l':
                                     try:
                                         sib1 = rent.previous_sibling.previous_sibling.string
@@ -151,7 +151,7 @@ with open(outfile, 'w') as z:
                                     con_match = re.search(per, sentence)
                                     if con_match:
                                         context = sentence
-                                
+
                                 try:
                                     length = len(context) #number of characters
                                     section = get_section(per_match)
