@@ -137,14 +137,17 @@ with open(outfile, 'w') as z:
                             for per_match in per_matches:
 
                                 if per_match.parent.name == 'l':
-                                    sib1 = per_match.parent.previous_sibling.previous_sibling.string
-                                    sib2 = per_match.parent.next_sibling.next_sibling.string
-                                    siblings = sib1 + ' ' + per_match + ' ' + sib2 #string with lines before and after
-                                    sentences = re.split("[.;•]", siblings )
-                                    for sentence in sentences:
-                                        con_match = re.search(per, sentence)
-                                        if con_match:
-                                            context = sentence
+                                    try:
+                                        sib1 = per_match.parent.previous_sibling.previous_sibling.string
+                                        sib2 = per_match.parent.next_sibling.next_sibling.string
+                                        siblings = sib1 + ' ' + per_match + ' ' + sib2 #string with lines before and after
+                                        sentences = re.split("[.;•]", siblings )
+                                        for sentence in sentences:
+                                            con_match = re.search(per, sentence)
+                                            if con_match:
+                                                context = sentence
+                                    except: 
+                                        context = "CONTEXT ERROR"
                                 else:
                                     context = per_match.replace('\n', '') # strips newline characters
 
