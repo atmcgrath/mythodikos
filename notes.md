@@ -1,5 +1,70 @@
 # Notes and process Documentation
 
+## June 12 Meeting
+
+- Looking at previous code for getting context: it isn't splitting on the punctuation
+- My suggestions - try:
+  - Getting rid of try/except (see error source)
+  - Using regex syntax
+- I ran the code - did not even get variables for sib1 and sib2 which means the problem is with the 'if' statement
+- fixed: .name instead of .t
+- added spaces between
+
+```python
+
+sib1 = per_match.parent.previous_sibling.previous_sibling.string
+
+```
+Ran it again and it seems to have worked, barring 2 exceptions (first line and last line?)
+
+```python
+try:
+    sib1 = per_match.parent.previous_sibling.previous_sibling.string
+    sib2 = per_match.parent.next_sibling.next_sibling.string
+    siblings = sib1 + ' ' + per_match + ' ' + sib2 #string with lines before and after
+    sentences = re.split("[.;•]", siblings )
+    for sentence in sentences:
+        con_match = re.search(per, sentence)
+        if con_match:
+            context = sentence
+except:
+      context = "CONTEXT ERROR"
+```
+- Replaced dot (copied and pasted) in the middle of a line: Stella will see if this worked
+
+- Implemented sentence-splitting all context matches, not just lines:
+
+```python
+rent = per_match.parent
+if rent.name == 'l'
+  try:
+    sib1 = rent.previous_sibling.previous_sibling.string
+    sib2 = rent.next_sibling.next_sibling.string
+    context_big = sib1 + ' ' + per_match + ' ' + sib2
+  except:
+    context_big = per_match
+else:
+  context_big = per_match.replace('\n', ' ')
+sentences = re.split("[.;·]", context_big)  
+for sentence in sentences:
+  con_match = re.search(per, sentence)
+  if con_match:
+    context = sentence
+
+```
+
+This definitely reduces the length of the context segments, but I can't tell if they are split as they should be, so let me know! See output: /data/context-testing-6-11-3.csv
+
+
+### Next steps:
+- [ ] Fix first/last line errors (missing siblings) - currently handles exception by limiting to the single line: find way to include any existing siblings.
+- [ ] Make it into a function?
+
+<!--
+Good workflow - commit each time I change Stella's code, then
+-->
+
+
 ## May 27 meeting
 
 - Updated timeframe for Summer: extracting sample dataset & creating proof-of-concept map.

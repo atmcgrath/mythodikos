@@ -87,7 +87,7 @@ def get_context(line):
 # outfile = "/Users/stellafritzell/mythodikos/corpus-test-6-11.csv"
 
 greekcorpusdir = "/Users/amcgrath1/classics/canonical-greekLit-master"
-outfile = "/Users/amcgrath1/classics/stella-6-11-3.csv"
+outfile = "/Users/amcgrath1/classics/context-testing-6-11-3.csv"
 
 persondict = {
             'Atalanta': [r'\bἈταλάντ'],
