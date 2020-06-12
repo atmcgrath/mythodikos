@@ -78,6 +78,7 @@ def get_context(line):
         context = .... # is there a way to have the program return the text surrounding the match up to the nearest punctuation mark?
 """
 
+
 # =====================================================================
 # Program
 # =====================================================================
@@ -86,7 +87,7 @@ def get_context(line):
 # outfile = "/Users/stellafritzell/mythodikos/corpus-test-6-11.csv"
 
 greekcorpusdir = "/Users/amcgrath1/classics/canonical-greekLit-master"
-outfile = "/Users/amcgrath1/classics/stella-6-11-2.csv"
+outfile = "/Users/amcgrath1/classics/stella-6-11-3.csv"
 
 persondict = {
             'Atalanta': [r'\bἈταλάντ'],
@@ -141,7 +142,7 @@ with open(outfile, 'w') as z:
                                         sib1 = per_match.parent.previous_sibling.previous_sibling.string
                                         sib2 = per_match.parent.next_sibling.next_sibling.string
                                         siblings = sib1 + ' ' + per_match + ' ' + sib2 #string with lines before and after
-                                        sentences = re.split("[.;•]", siblings )
+                                        sentences = re.split("[.;·]", siblings ) 
                                         for sentence in sentences:
                                             con_match = re.search(per, sentence)
                                             if con_match:
