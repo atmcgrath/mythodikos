@@ -86,7 +86,7 @@ def get_context(line):
 # outfile = "/Users/stellafritzell/mythodikos/corpus-test-6-11.csv"
 
 greekcorpusdir = "/Users/amcgrath1/classics/canonical-greekLit-master"
-outfile = "/Users/amcgrath1/classics/stella-6-11.csv"
+outfile = "/Users/amcgrath1/classics/stella-6-11-2.csv"
 
 persondict = {
             'Atalanta': [r'\bἈταλάντ'],
@@ -136,10 +136,10 @@ with open(outfile, 'w') as z:
                             per_matches = soup.find_all(string=re.compile(per))
                             for per_match in per_matches:
 
-                                if per_match.parent.t == 'l':
-                                    sib1 = per_match.previous_sibling.string
-                                    sib2 = per_match.next_sibling.string
-                                    siblings = sib1 + per_match + sib2 #string with lines before and after
+                                if per_match.parent.name == 'l':
+                                    sib1 = per_match.parent.previous_sibling.previous_sibling.string
+                                    sib2 = per_match.parent.next_sibling.next_sibling.string
+                                    siblings = sib1 + ' ' + per_match + ' ' + sib2 #string with lines before and after
                                     sentences = re.split("[.;•]", siblings )
                                     for sentence in sentences:
                                         con_match = re.search(per, sentence)
