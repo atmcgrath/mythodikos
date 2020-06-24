@@ -1,5 +1,44 @@
 # Notes and process Documentation
 
+## June 24 Meeting
+
+- Stella fixed the problems with the context search and is testing it out as a function.
+
+Questions about getting data from multiple csv files and/or reading and writing to csv
+- Open pleaides file, read it, search for a match between place and place, take lat/long and add to a column
+- Open 2 csvs and make a 3rd from the data
+
+```python
+# This is very, very rough, untested, and sketchy
+with open(infile1, 'r') as z #open match results
+  f = csv.reader(z)
+
+  match_data = []
+  places = []
+  for row in f
+    match_data.append(row) # creates a list from data - list(csv.reader) can only be iterated once
+    placename = row[10]
+    places.append(placename)
+    sets = set(places) # removes duplicates from the place list
+
+geo_data = {}
+pleaides = list(csv.reader(infile2)) # creates a list from the data
+  location = row[8]
+  if location in sets:
+    geo_data[location] = row[3], row[7]
+
+# data header thing
+
+for row in read_results # list from csv of person & place matches
+  if row[8] in pleaides:
+
+
+```
+
+### Immediate priorities
+- Test the function
+- Reading the csv file
+
 ## June 12 Meeting
 
 - Looking at previous code for getting context: it isn't splitting on the punctuation
