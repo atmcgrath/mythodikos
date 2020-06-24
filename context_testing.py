@@ -69,13 +69,29 @@ def get_linenum(line): # separated from get_section to test
 
 """
 def get_context(line):
-    context = []
-    if m.parent.t == 'l': #or <lb/>
-        prev_line = matchchunk.previous_sibling.previous_sibling.string
-        next_line = matchchunk.next_sibling.next_sibling.string
-        context = prev_line + ' ' + m + ' ' + next_line # this returns text as a full string, rather than as three lists
-    elif m.parent.t == 'p': # for paragraphs consider using cltk / nltk sentence tokenize to return the match sentence
-        context = .... # is there a way to have the program return the text surrounding the match up to the nearest punctuation mark?
+	context = ''
+	rent = line.parent
+		if rent.name == 'l':
+			try:
+				sib1 = rent.previous_sibling.previous_siblings.string
+				sib2 = rent.next_sibling.next_siblings.string
+				context_big = sib1 + ' ' + line + ' ' + sib2 #string with lines before and after
+			except:
+				try:
+					context_big = sib1 + ' ' + line
+				except:
+					try:
+						context_big = line + ' ' + sib2
+					except:		
+						context_big = line		
+		else:
+			context_big = line.replace('\n', ' ') #replaces newline characters with space
+	sentences = re.split("[.;·]", context_big) #break context chunks at specified punctuation
+	for sentence in sentences:
+		con_match = re.search(per, sentence) #per is a variable within the code, not the function -- how to define here?
+			if con_match:
+				context = sentence
+	return context
 """
 
 
@@ -97,11 +113,11 @@ persondict = {
 placedict = {
             'Arcadia': [r'\bἈρκαδ', r'\bἈρκάδ'], #need for lowercase reg-ex as well?
             'Boeotia': [r'\bΒοιωτ', r'\bΒοιῳτ', r'\bΒοϊωτ', r'\bΒοέκ', r'\bβοεκ'],
-            #'Calydon': [r'\bΚαλυδόν', r'\bΚαλύδων', r'\bΚαλυδῶν', r'\bΚαλυδών'],
-            #'Colchis': [r'\bΚόλκ', r'\bΚολκ', r'\bΚολχ'],
-            #'Corinth': [r'\bΚόρινθ', r'\bΚορίνθ', r'\bΚορινθ'],
-            #'Lacedaemon': [r'\bΛακεδ', r'\bΛαβεδ', r'\bΛακκοδ', r'\bΛακηδ', r'\bΛακιδ', r'\bΛακοδ', r'\bΛαχεδ'],
-            #'Lesbos': [r'\bΛέσβε', r'\bΛέσβη', r'\bΛέσβο', r'\bΛέσβῳ', r'\bΛέσβω'],
+            'Calydon': [r'\bΚαλυδόν', r'\bΚαλύδων', r'\bΚαλυδῶν', r'\bΚαλυδών'],
+            'Colchis': [r'\bΚόλκ', r'\bΚολκ', r'\bΚολχ'],
+            'Corinth': [r'\bΚόρινθ', r'\bΚορίνθ', r'\bΚορινθ'],
+            'Lacedaemon': [r'\bΛακεδ', r'\bΛαβεδ', r'\bΛακκοδ', r'\bΛακηδ', r'\bΛακιδ', r'\bΛακοδ', r'\bΛαχεδ'],
+            'Lesbos': [r'\bΛέσβε', r'\bΛέσβη', r'\bΛέσβο', r'\bΛέσβῳ', r'\bΛέσβω'],
             #'Lycaeus': [r''],
             #'Mainalos': [r''],
             #'Methymna': [r''],
@@ -142,8 +158,14 @@ with open(outfile, 'w') as z:
                                         sib1 = rent.previous_sibling.previous_sibling.string
                                         sib2 = rent.next_sibling.next_sibling.string
                                         context_big = sib1 + ' ' + per_match + ' ' + sib2
-                                    except:
-                                        context_big = per_match
+                                    except:	 #for matches without a previous or next sib
+										try:
+											context_big = sib1 + ' ' + per_match
+										except:
+											try:
+												context_big = per_match + ' ' + sib2
+											except:		
+												context_big = per_match
                                 else:
                                     context_big = per_match.replace('\n', ' ')
                                 sentences = re.split("[.;·]", context_big)
