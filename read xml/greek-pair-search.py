@@ -6,14 +6,12 @@ Code for Mythodikos Project:
 1. iterates through corpus
 2. opens file, parses file, finds pattern matches with regex values & keys in a dictionary
 3. locates secondary pattern matches with regex values within initial search results
-4. for each match: records latinized person name (key), place name, title & author of text (needs some refinement), citation (with issues), text context (with issues), and file name
+4. for each match: records latinized person name (key), place name, title & author of text (needs some refinement), citation (with some issues), text context, and file name
 5. writes information to .csv
 
 Next Steps:
-1. refine 'context' criteria
-2. clean up citation extraction, author and title
-3. clean up pair-match encoding - should not need to do another find_all() search of the full corpus, just of the initial results
-4. attach Pleiades IDs/geo corrdinates to places in search results
+1. clean up citation extraction, author and title
+2. attach Pleiades IDs/geo corrdinates to places in search results (read Pleiades data .csv - write to mythodikos data .csv)
 
 @author: sfritzell
 adapted from: search-xml-greek.py
@@ -67,31 +65,42 @@ def get_linenum(line): # separated from get_section to test
 			continue
 	return line_num
 
-"""
 def get_context(line):
-	context = []
-	if m.parent.t == 'l': #or <lb/>
-		prev_line = matchchunk.previous_sibling.previous_sibling.string
-		next_line = matchchunk.next_sibling.next_sibling.string
-		context = prev_line + ' ' + m + ' ' + next_line # this returns text as a full string, rather than as three lists
-	elif m.parent.t == 'p': # for paragraphs consider using cltk / nltk sentence tokenize to return the match sentence
-		context = .... # is there a way to have the program return the text surrounding the match up to the nearest punctuation mark?
-"""
+	context = ''
+	rent = line.parent
+	if rent.name == 'l':
+		try:
+			sib1 = rent.previous_sibling.previous_sibling.string
+			sib2 = rent.next_sibling.next_sibling.string
+			context_big = sib1 + ' ' + line + ' ' + sib2 #string with lines before and after
+		except:
+			try:
+				context_big = sib1 + ' ' + line
+			except:
+				try:
+					context_big = line + ' ' + sib2
+				except:		
+					context_big = line		
+	else:
+		context_big = line.replace('\n', ' ') #replaces newline characters with space
+	sentences = re.split("[.;·]", context_big) #break context chunks at specified punctuation
+	for sentence in sentences:
+		con_match = re.search(per, sentence) #per is a global variable within the code
+		if con_match:
+			context = sentence
+	return context
 
 # =====================================================================
 # Program
 # =====================================================================
 
-# greekcorpusdir = "/Users/stellafritzell/mythodikos/canonical-greekLit-master"
-# outfile = "/Users/stellafritzell/mythodikos/corpus-test-5-15.csv"
-
-greekcorpusdir = "/Users/amcgrath1/classics/canonical-greekLit-master"
-outfile = "/Users/amcgrath1/classics/stella-5-18.csv"
+greekcorpusdir = "/Users/stellafritzell/mythodikos/canonical-greekLit-master"
+outfile = "/Users/stellafritzell/mythodikos/corpus-test-6-26.csv"
 
 persondict = {
-			'Atalanta': [r'\bἈταλάντ'],
+			'Atalanta': [r'\bἈταλάντ'], 
 			'Arion': [r'\bἈρίων', r'\bἈρίον']
-			} # Compile in reference to LIMC
+			} # Compile in reference to https://www.theoi.com/greek-mythology/heroes.html ; eventually LIMC
 
 placedict = {
 			'Arcadia': [r'\bἈρκαδ', r'\bἈρκάδ'], #need for lowercase reg-ex as well?
@@ -100,7 +109,7 @@ placedict = {
 			'Colchis': [r'\bΚόλκ', r'\bΚολκ', r'\bΚολχ'],
 			'Corinth': [r'\bΚόρινθ', r'\bΚορίνθ', r'\bΚορινθ'],
 			'Lacedaemon': [r'\bΛακεδ', r'\bΛαβεδ', r'\bΛακκοδ', r'\bΛακηδ', r'\bΛακιδ', r'\bΛακοδ', r'\bΛαχεδ'],
-			#'Lesbos': [r''],
+			'Lesbos': [r'\bΛέσβε', r'\bΛέσβη', r'\bΛέσβο', r'\bΛέσβῳ', r'\bΛέσβω'],
 			#'Lycaeus': [r''],
 			#'Mainalos': [r''],
 			#'Methymna': [r''],
@@ -120,7 +129,7 @@ with open(outfile, 'w') as z:
 		for file in files:
 			if fnmatch.fnmatch(file, '*grc*.xml'):
 				infile = root+'/'+str(file) # specifices greek text files for search
-
+				
 				with open(infile) as x:
 					soup = BeautifulSoup(x, features='lxml')
 
@@ -134,46 +143,19 @@ with open(outfile, 'w') as z:
 						for per in per_terms: # each regex value
 							per_matches = soup.find_all(string=re.compile(per))
 							for per_match in per_matches:
-								context = per_match.replace('\n', '') # strips newline characters
-
+								context = get_context(per_match)
 								for place in placedict:
 									pl_terms = placedict[place] # value list for each place key
-									for pl in pl_terms: # search regex value
-                                        pair = re.search(pl, context) # searches context for x
-                                        if pair:
-                                            try:
-												length = len(context) # number of characters
+									for pl in pl_terms: # earch regex value
+										pair = re.search(pl, context) # searches context for x
+										if pair:
+											try:
 												section = get_section(per_match)
 												line = get_linenum(per_match)
-												f.writerow([person, place, text_title,
-                                                        text_author, section, line, context, length, file]) # write defined variables for matches to csv
-                                            except KeyError:
+												# context = get_context(per_match)
+												length = len(context) # number of characters
+												f.writerow([person, place, text_title, text_author, section, line, context, length, file]) # write defined variables for matches to csv
+											except KeyError:
 												continue
 										else:
-                                            continue
-
-
-
-'''
-PSEUDO CODE FOR MATCH PAIRS:
-for match context
-	if match context contains value from placedict
-		try: get citation info (f.writerow(...))
-		except:
-			continue
-	else:
-		continue
-'''
-
-'''
-ATM notes 5-18:
-
-Find substring in string:
-    - if pl in context
-    - context.find(pl)
-
-Find regex in string - this works for above
-    match = re.search(pl, context)
-
-
-'''
+											continue
