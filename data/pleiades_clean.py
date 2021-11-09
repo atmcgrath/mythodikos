@@ -23,13 +23,27 @@ Next Steps:
 import json
 
 # =====================================================================
+# Functions
+# =====================================================================
+def select_type(types):
+	place_types = ['settlement', 'region']
+	relevant = False
+	for item in place_types:
+		if item in types:
+			relevant = True
+			break
+		else:
+			continue
+	return relevant
+
+# =====================================================================
 # Program
 # =====================================================================
 
 infile = "/Users/stellafritzell/mythodikos/pleiades-places-latest.json"
 # web url: http://atlantides.org/downloads/pleiades/json/pleiades-places-latest.json.gz
 
-outfile = "/Users/stellafritzell/mythodikos/clean-pleiades.json"
+outfile = "/Users/stellafritzell/mythodikos/clean-pleiades-wfunc.json"
 
 with open(outfile, 'w') as z:
 	with open(infile) as x:
@@ -52,13 +66,17 @@ with open(outfile, 'w') as z:
 			gps = d['reprPoint'] #representative lat-long coordinates
 			#alt_names = d['names'] #this doesn't seem like useful information right now (it has a lot of extra stuff)
 			typ = d['placeTypes'] #type of place represented by entry
+			'''
 			if "settlement" in typ:
 				ptyp = "settlement"
 				data = {name: {'location type': typ, 'Pleiades id': pl_id, 'coordinates': gps, 'place type': ptyp}}
 			elif "region" in typ:
 				ptyp = "region"
 				data = {name: {'location type': typ, 'Pleiades id': pl_id, 'coordinates': gps, 'place type': ptyp}}
+			'''
+			if select_type(typ) == True:
+				data = {name: {'location type': typ, 'Pleiades id': pl_id, 'coordinates': gps}}
 
-			json.dump(data, z, indent=4) #print results in redable format to json outfile
+				json.dump(data, z, indent=4) #print results in redable format to json outfile
 
 
