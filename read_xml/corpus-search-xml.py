@@ -124,7 +124,7 @@ outfile = "/Users/stellafritzell/mythodikos/corpus-test-12-11.json" #file to wri
 #build json file with desired search metadata
 with open(outfile, 'w') as z: #to access/create the outfile for data from text-mining
 
-	citations = defaultdict(list) #create default dict to collect citations for person-place pairs in list class
+	#citations = defaultdict(list) #create default dict to collect citations for person-place pairs in list class
 	pair_data = {} # new dict for other stuff on ids 
 	# OR, because I can't figure out how to accurately combine these... create seperate dict for each unique key needed for geojson and then combine using default dict
 
@@ -145,6 +145,7 @@ with open(outfile, 'w') as z: #to access/create the outfile for data from text-m
 								context = get_context(per_match)
 
 								for place in placedict:
+									citations = []
 									pl_keys = placedict[place] # list of keys for each place item
 									pl_terms = pl_keys['spellings'] # values under specificed key
 									pl_id = pl_keys['pleiades id']
@@ -156,14 +157,15 @@ with open(outfile, 'w') as z: #to access/create the outfile for data from text-m
 										else:
 											continue
 
-										ID = person +'-'+ place #unique identifier for match pair
-										citations[ID].append(citation) #in dict creates key for ID (if new) and appends citation as value in list
-										
+										#
+										citations.append(citation) #in dict creates key for ID (if new) and appends citation as value in list
+									if len(citations) > 0:
+										ID = person +'-'+ place #unique identifier for match pair	
 										pair_data[ID] = {
 											'type': 'Feature', 
 											'title': place, 
 											'geometry': {'type': 'Point', 'coordinates': pl_gps}, 
-											'properties': {'pleiades id': pl_id, 'citations': []}
+											'properties': {'pleiades id': pl_id, 'citations': citations}
 											}
 	
 	#print(citations)
